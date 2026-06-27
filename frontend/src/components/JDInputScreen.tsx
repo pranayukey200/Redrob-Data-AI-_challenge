@@ -1,20 +1,19 @@
 import type { WeightPreset, Weights } from '../App'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Brain, Zap, Users, Target, ChevronRight, Sliders, Sparkles } from 'lucide-react'
+import { Brain, Target, Users, Zap, Sliders, ArrowRight, ChevronLeft } from 'lucide-react'
 
 const JD_TEXT = `Senior AI Engineer — Founding Team
-Redrob AI · Pune / Noida, India (Hybrid)
-Experience: 5–9 years
+Redrob AI · Pune / Noida, India (Hybrid) · 5–9 years
 
 MUST HAVE
   • Production embeddings-based retrieval (sentence-transformers, BGE, E5)
-  • Vector databases: FAISS, Pinecone, Weaviate, Qdrant, Milvus, Elasticsearch
+  • Vector databases (FAISS, Pinecone, Weaviate, Qdrant, Milvus, Elasticsearch)
   • Strong Python (production-grade ML systems)
   • Ranking evaluation: NDCG, MRR, MAP, A/B testing frameworks
   • NLP / Information Retrieval background
 
 NICE TO HAVE
-  LLM fine-tuning (LoRA / QLoRA) · Learning-to-rank · RAG systems · Distributed inference`
+  LLM fine-tuning (LoRA / QLoRA) · Learning-to-rank · RAG systems`
 
 interface Props {
   weights: Weights
@@ -25,163 +24,121 @@ interface Props {
   onPresetChange: (p: WeightPreset) => void
   onWeightsChange: (w: Weights) => void
   onRank: () => void
+  onBack: () => void
 }
 
-const PRESETS: { id: WeightPreset; label: string; desc: string; icon: React.ReactNode }[] = [
-  { id: 'balanced', label: 'Balanced', desc: 'Equal weight across all signals', icon: <Target size={14} /> },
-  { id: 'senior', label: 'Senior Hire', desc: 'Prioritize career trajectory', icon: <Users size={14} /> },
-  { id: 'ic', label: 'Deep IC', desc: 'Max skill & activity signals', icon: <Zap size={14} /> },
-  { id: 'custom', label: 'Custom', desc: 'Tune every weight', icon: <Sliders size={14} /> },
+const PRESETS: { id: WeightPreset; label: string; icon: React.ReactNode }[] = [
+  { id: 'balanced', label: 'Balanced', icon: <Target size={13} /> },
+  { id: 'senior', label: 'Senior Hire', icon: <Users size={13} /> },
+  { id: 'ic', label: 'Deep IC', icon: <Zap size={13} /> },
+  { id: 'custom', label: 'Custom', icon: <Sliders size={13} /> },
 ]
 
-const SIGNAL_COLORS: Record<keyof Weights, string> = {
-  skill: '#6366f1',
-  career: '#22d3ee',
-  behavioral: '#fbbf24',
-  semantic: '#34d399',
-}
-
-const SIGNAL_LABELS: Record<keyof Weights, string> = {
-  skill: 'Skill Match',
-  career: 'Career Fit',
-  behavioral: 'Behavioral',
-  semantic: 'Semantic',
-}
+const SIGNAL_META: { key: keyof Weights; label: string; color: string }[] = [
+  { key: 'skill', label: 'Skill Match', color: '#0084FF' },
+  { key: 'career', label: 'Career Fit', color: '#319AFF' },
+  { key: 'semantic', label: 'Semantic', color: '#60B1FF' },
+  { key: 'behavioral', label: 'Behavioral', color: '#93C5FD' },
+]
 
 export default function JDInputScreen({
   weights, preset, loading, loadingStage, error,
-  onPresetChange, onWeightsChange, onRank,
+  onPresetChange, onWeightsChange, onRank, onBack,
 }: Props) {
   const total = Object.values(weights).reduce((a, b) => a + b, 0)
-  const normalizedPct = (v: number) => Math.round((v / total) * 100)
-
-  const handleSlider = (key: keyof Weights, val: number) => {
-    onWeightsChange({ ...weights, [key]: val / 100 })
-    onPresetChange('custom')
-  }
+  const pct = (v: number) => Math.round((v / total) * 100)
 
   return (
-    <div className="relative min-h-screen bg-base overflow-hidden flex flex-col">
-
-      {/* Animated background orbs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute w-[700px] h-[700px] rounded-full animate-float-a"
-          style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)', top: '-200px', left: '-150px' }} />
-        <div className="absolute w-[500px] h-[500px] rounded-full animate-float-b"
-          style={{ background: 'radial-gradient(circle, rgba(34,211,238,0.12) 0%, transparent 70%)', bottom: '-100px', right: '-100px' }} />
-        <div className="absolute w-[350px] h-[350px] rounded-full animate-float-c"
-          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%)', top: '40%', left: '55%' }} />
-        {/* Grid overlay */}
-        <div className="absolute inset-0 opacity-[0.03]"
-          style={{ backgroundImage: 'linear-gradient(rgba(99,102,241,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.8) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+    <div className="min-h-screen bg-white relative overflow-hidden">
+      {/* Background glows */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute animate-float-a"
+          style={{ width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(96,177,255,0.15) 0%, transparent 70%)', top: -150, left: -100 }} />
+        <div className="absolute animate-float-b"
+          style={{ width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(49,154,255,0.1) 0%, transparent 70%)', bottom: 0, right: 0 }} />
       </div>
 
-      {/* Nav bar */}
-      <div className="relative z-10 flex items-center justify-between px-8 py-5">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-ir-indigo flex items-center justify-center shadow-[0_0_16px_rgba(99,102,241,0.5)]">
-            <Brain size={16} className="text-white" />
-          </div>
-          <span className="text-white font-bold tracking-tight text-lg">IntelliRank</span>
-          <span className="ml-1 text-xs font-mono text-ir-indigo-light bg-ir-indigo/10 border border-ir-indigo/20 rounded px-2 py-0.5">v1.0</span>
-        </div>
-        <div className="flex items-center gap-6 text-xs text-ir-slate font-mono">
-          <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-ir-emerald animate-pulse-slow" />100K candidates</span>
-          <span>4 signals</span>
-          <span>~37s ranking</span>
+      {/* Top nav */}
+      <div className="relative z-10 flex items-center gap-3 px-6 py-4 border-b border-blue-50">
+        <button onClick={onBack}
+          className="flex items-center gap-1.5 text-slate-400 hover:text-blue-600 text-sm transition-colors group">
+          <ChevronLeft size={15} className="group-hover:-translate-x-0.5 transition-transform" />
+          Back
+        </button>
+        <div className="flex items-center gap-2 ml-1">
+          <Brain size={16} className="text-blue-600" />
+          <span className="font-display font-bold text-navy text-sm">IntelliRank</span>
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-8">
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center px-4 py-12">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-[680px] space-y-5"
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-[620px] space-y-5"
         >
-          {/* Hero */}
-          <div className="text-center space-y-3 mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-ir-indigo/30 bg-ir-indigo/8 mb-2">
-              <Sparkles size={12} className="text-ir-indigo-light" />
-              <span className="text-ir-indigo-light text-xs font-mono tracking-widest uppercase">Redrob · Data & AI Challenge</span>
-            </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight tracking-tight">
-              Rank Candidates the Way<br />
-              <span className="gradient-text">a Great Recruiter Would</span>
-            </h1>
-            <p className="text-ir-slate text-sm max-w-md mx-auto leading-relaxed">
-              Not by matching keywords — but by actually understanding who fits the role.
-              Multi-signal AI scoring across skill depth, career trajectory, behavioral signals, and semantic relevance.
-            </p>
+          <div className="text-center space-y-2 mb-8">
+            <h1 className="font-display text-3xl font-bold text-navy tracking-tight">Configure &amp; Rank</h1>
+            <p className="text-slate-400 text-sm">Tune signal weights then run AI ranking across 100,000 candidates</p>
           </div>
 
-          {/* JD Card */}
-          <div className="glass-card rounded-2xl p-5 group">
+          {/* JD card */}
+          <div className="glass rounded-2xl p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-ir-indigo/20 flex items-center justify-center">
-                  <Target size={12} className="text-ir-indigo-light" />
+                <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <Target size={12} className="text-blue-600" />
                 </div>
-                <span className="text-ir-indigo-light text-xs font-mono uppercase tracking-wider font-semibold">Job Description</span>
+                <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider">Job Description</span>
               </div>
-              <span className="text-xs text-ir-slate font-mono bg-surface-2 border border-white/5 rounded px-2 py-0.5">pre-loaded</span>
+              <span className="text-[11px] text-slate-400 font-mono bg-blue-50 rounded px-2 py-0.5">pre-loaded</span>
             </div>
-            <pre className="text-slate-300 text-xs leading-relaxed whitespace-pre-wrap font-mono max-h-44 overflow-y-auto">
-              {JD_TEXT}
-            </pre>
+            <pre className="text-slate-500 text-xs leading-relaxed whitespace-pre-wrap font-mono max-h-44 overflow-y-auto">{JD_TEXT}</pre>
           </div>
 
-          {/* Signal weights */}
-          <div className="glass-card rounded-2xl p-5 space-y-4">
+          {/* Weights */}
+          <div className="glass rounded-2xl p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-ir-slate text-xs font-mono uppercase tracking-wider">Signal Weights</span>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Signal Weights</span>
               <div className="flex gap-1.5">
                 {PRESETS.map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => onPresetChange(p.id)}
-                    title={p.desc}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                  <button key={p.id} onClick={() => onPresetChange(p.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
                       preset === p.id
-                        ? 'bg-ir-indigo text-white shadow-[0_0_12px_rgba(99,102,241,0.4)]'
-                        : 'text-ir-slate border border-white/8 hover:border-ir-indigo/40 hover:text-ir-indigo-light'
-                    }`}
-                  >
-                    {p.icon}
-                    <span className="hidden sm:inline">{p.label}</span>
+                        ? 'bg-blue-600 text-white shadow-[0_0_12px_rgba(0,132,255,0.3)]'
+                        : 'text-slate-400 border border-blue-100 hover:border-blue-300 hover:text-blue-600'
+                    }`}>
+                    {p.icon}{p.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Signal bars (always visible) */}
-            <div className="space-y-2.5">
-              {(Object.keys(weights) as (keyof Weights)[]).map(key => {
-                const pct = normalizedPct(weights[key])
-                const color = SIGNAL_COLORS[key]
+            <div className="space-y-3">
+              {SIGNAL_META.map(({ key, label, color }) => {
+                const val = pct(weights[key])
                 return (
                   <div key={key} className="space-y-1.5">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-300 font-medium">{SIGNAL_LABELS[key]}</span>
-                      <span className="font-mono font-semibold" style={{ color }}>{pct}%</span>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-600 font-medium">{label}</span>
+                      <span className="font-mono font-bold" style={{ color }}>{val}%</span>
                     </div>
                     {preset === 'custom' ? (
-                      <input
-                        type="range" min={0} max={100}
+                      <input type="range" min={0} max={100}
                         value={Math.round(weights[key] * 100)}
-                        onChange={e => handleSlider(key, Number(e.target.value))}
+                        onChange={e => onWeightsChange({ ...weights, [key]: Number(e.target.value) / 100 })}
                         style={{ '--accent': color } as React.CSSProperties}
                         className="w-full"
                       />
                     ) : (
-                      <div className="h-1.5 rounded-full bg-white/5">
-                        <motion.div
-                          className="h-full rounded-full"
+                      <div className="h-2 rounded-full bg-blue-50 overflow-hidden">
+                        <motion.div className="h-full rounded-full"
                           initial={{ width: 0 }}
-                          animate={{ width: `${pct}%` }}
+                          animate={{ width: `${val}%` }}
                           transition={{ duration: 0.6, ease: 'easeOut' }}
-                          style={{ background: color, boxShadow: `0 0 8px ${color}50` }}
+                          style={{ background: color, boxShadow: `0 0 6px ${color}60` }}
                         />
                       </div>
                     )}
@@ -194,10 +151,8 @@ export default function JDInputScreen({
           {/* Error */}
           <AnimatePresence>
             {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="rounded-xl border border-red-500/30 bg-red-950/30 p-4 text-red-400 text-sm font-mono backdrop-blur"
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-600 text-sm">
                 {error}
               </motion.div>
             )}
@@ -209,38 +164,27 @@ export default function JDInputScreen({
             disabled={loading}
             whileHover={!loading ? { scale: 1.01 } : {}}
             whileTap={!loading ? { scale: 0.99 } : {}}
-            className="relative w-full py-4 rounded-xl font-semibold text-base text-white overflow-hidden disabled:cursor-not-allowed disabled:opacity-70 btn-glow"
-            style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%)' }}
+            className="btn-primary w-full py-4 text-base rounded-2xl flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
             {loading ? (
-              <span className="flex items-center justify-center gap-3">
+              <>
                 <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                <span className="font-mono text-sm tracking-wide">{loadingStage || 'Processing...'}</span>
-              </span>
+                <span className="font-mono text-sm">{loadingStage || 'Processing...'}</span>
+              </>
             ) : (
-              <span className="flex items-center justify-center gap-2">
+              <>
                 <Brain size={18} />
                 Find Best-Fit Candidates
-                <ChevronRight size={16} className="opacity-70" />
-              </span>
+                <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center">
+                  <ArrowRight size={13} />
+                </div>
+              </>
             )}
           </motion.button>
 
-          {/* Footer stats */}
-          <div className="flex items-center justify-center gap-6 pt-1">
-            {[
-              { label: '100K', sub: 'candidates' },
-              { label: '4', sub: 'AI signals' },
-              { label: '<40s', sub: 'ranking time' },
-              { label: 'offline', sub: 'no LLM calls' },
-            ].map(s => (
-              <div key={s.label} className="text-center">
-                <div className="text-sm font-bold gradient-text-indigo font-mono">{s.label}</div>
-                <div className="text-xs text-ir-slate">{s.sub}</div>
-              </div>
-            ))}
-          </div>
+          <p className="text-center text-xs text-slate-400">
+            100,000 candidates · TF-IDF semantic + skill + career + behavioral · ~37s
+          </p>
         </motion.div>
       </div>
     </div>
