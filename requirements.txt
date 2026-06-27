@@ -1,0 +1,22 @@
+# Core Python pipeline
+sentence-transformers==3.4.1
+numpy==2.2.3
+scipy==1.15.2
+pandas==2.2.3
+openpyxl==3.1.5
+
+# API
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+python-multipart==0.0.20
+pydantic==2.11.3
+
+# JD parsing / explanation (optional — used in precompute only, not rank.py)
+anthropic==0.51.0
+
+# Docx reading (for local tooling, not needed for rank.py)
+python-docx==1.1.2
+
+# Utilities
+python-dotenv==1.1.0
+tqdm==4.67.1

@@ -1,0 +1,63 @@
+team_name: "intellirank"
+
+primary_contact:
+  name: "Pranav"
+  email: "pranav@example.com"
+  phone: "+91-XXXXXXXXXX"
+
+team_members:
+  - name: "Pranav"
+    email: "pranav@example.com"
+    role: "Solo participant"
+
+github_repo: "https://github.com/YOUR_USERNAME/intellirank"
+
+sandbox_link: "https://huggingface.co/spaces/YOUR_USERNAME/intellirank"
+
+reproduce_command: "python rank.py --candidates ./candidates.jsonl --out ./submission.csv"
+
+compute:
+  platform: "Windows 11, local CPU"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.11"
+  os: "Windows 11"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: true
+  pre_computation_time_minutes: 5
+
+ai_tools_used:
+  - "Claude"
+
+ai_usage_summary: |
+  Used Claude Code (claude-sonnet-4-6) as the primary engineering assistant throughout
+  the build: architecture design, pipeline implementation, scoring logic, and debugging.
+  No candidate data was passed to any LLM. All ranking is deterministic and offline.
+  The scoring logic, field mappings, and JD analysis were designed by the developer
+  with Claude as a pair-programming tool. The submission was validated end-to-end.
+
+methodology_summary: |
+  Multi-signal ranker with four components combined via weighted fusion:
+  (1) Skill Match (35%): keyword cluster coverage of 5 must-have JD categories
+  (embeddings/retrieval, vector DBs, Python, ranking eval, NLP/IR) with
+  proficiency/duration/endorsement weights per skill. Wrong-domain skills (CV,
+  speech) incur penalties per the JD's explicit disqualifiers.
+  (2) Career Fit (30%): Gaussian experience-years scoring around 7yr ideal; title
+  relevance (ML/NLP/AI Engineer >> Software Engineer >> non-AI roles); India Tier-1
+  city bonus; consulting-only background penalty; production deployment signal from
+  career description text.
+  (3) Behavioral (15%): availability (open_to_work, recency decay, notice period,
+  applications), responsiveness (recruiter_response_rate, avg_response_time_hours),
+  reliability (interview_completion_rate, offer_acceptance_rate, verified contact),
+  engagement (github_score, profile_completeness, saved_by_recruiters).
+  (4) Semantic (20%): TF-IDF cosine similarity (bigrams, 50K features) between a
+  150-word JD query and candidate profile text. Offline, no model download required.
+  Missing signals are renormalized out rather than zeroed. Runtime: ~35s on CPU.
+
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: false
+  reproduction_tested: true
