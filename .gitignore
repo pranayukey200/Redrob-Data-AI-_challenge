@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Environment
+.env
+.env.local
+.env.*.local
+venv/
+.venv/
+env/
+
+# Data (large files)
+data/raw/
+data/processed/
+*.jsonl
+*.parquet
+
+# Cache (generated artifacts)
+cache/
+*.npy
+*.pkl
+*.joblib
+
+# Output (generated — keep submission.csv)
+output/*.xlsx
+!output/submission.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Node/Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# Logs
+*.log
+logs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Distribution
+*.tar.gz
+*.zip
