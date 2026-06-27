@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import LandingScreen from './components/LandingScreen'
 import JDInputScreen from './components/JDInputScreen'
 import RankedListScreen from './components/RankedListScreen'
+import { saveRankingRun } from './lib/firestore'
 import './App.css'
 
 export type WeightPreset = 'balanced' | 'senior' | 'ic' | 'custom'
@@ -10,14 +12,6 @@ export interface Weights {
   skill: number
   career: number
   behavioral: number
-}
-
-export interface ScoreBreakdown {
-  semantic_score: number | null
-  skill_match_score: number
-  career_fit_score: number
-  behavioral_score: number
-  final_score: number
 }
 
 export interface Candidate {
@@ -55,13 +49,15 @@ export interface RankingResult {
 
 const PRESET_WEIGHTS: Record<WeightPreset, Weights> = {
   balanced: { semantic: 0.20, skill: 0.35, career: 0.30, behavioral: 0.15 },
-  senior: { semantic: 0.15, skill: 0.30, career: 0.40, behavioral: 0.15 },
-  ic: { semantic: 0.20, skill: 0.40, career: 0.25, behavioral: 0.15 },
-  custom: { semantic: 0.20, skill: 0.35, career: 0.30, behavioral: 0.15 },
+  senior:   { semantic: 0.15, skill: 0.30, career: 0.40, behavioral: 0.15 },
+  ic:       { semantic: 0.20, skill: 0.40, career: 0.25, behavioral: 0.15 },
+  custom:   { semantic: 0.20, skill: 0.35, career: 0.30, behavioral: 0.15 },
 }
 
+type Screen = 'landing' | 'rank' | 'results'
+
 function App() {
-  const [screen, setScreen] = useState<'jd' | 'results'>('jd')
+  const [screen, setScreen] = useState<Screen>('landing')
   const [ranking, setRanking] = useState<RankingResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadingStage, setLoadingStage] = useState('')
@@ -76,7 +72,7 @@ function App() {
       setLoadingStage('Loading candidate pool...')
       await fetch('http://localhost:8000/api/candidates/load', { method: 'POST' })
 
-      setLoadingStage('Scoring candidate pool...')
+      setLoadingStage('Scoring 100K candidates...')
       const res = await fetch('http://localhost:8000/api/rank', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -86,10 +82,13 @@ function App() {
         const err = await res.json()
         throw new Error(err.detail || 'Ranking failed')
       }
-      setLoadingStage('Ranking...')
-      const data = await res.json()
+      setLoadingStage('Building results...')
+      const data: RankingResult = await res.json()
       setRanking(data)
       setScreen('results')
+
+      // Persist to Firebase (non-blocking)
+      saveRankingRun(data).catch(console.warn)
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e)
       setError(msg.includes('Failed to fetch')
@@ -107,26 +106,23 @@ function App() {
   }
 
   if (screen === 'results' && ranking) {
+    return <RankedListScreen ranking={ranking} onBack={() => setScreen('rank')} />
+  }
+
+  if (screen === 'rank') {
     return (
-      <RankedListScreen
-        ranking={ranking}
-        onBack={() => setScreen('jd')}
+      <JDInputScreen
+        weights={weights} preset={preset}
+        loading={loading} loadingStage={loadingStage} error={error}
+        onPresetChange={handlePresetChange}
+        onWeightsChange={setWeights}
+        onRank={handleRank}
+        onBack={() => setScreen('landing')}
       />
     )
   }
 
-  return (
-    <JDInputScreen
-      weights={weights}
-      preset={preset}
-      loading={loading}
-      loadingStage={loadingStage}
-      error={error}
-      onPresetChange={handlePresetChange}
-      onWeightsChange={setWeights}
-      onRank={handleRank}
-    />
-  )
+  return <LandingScreen onStart={() => setScreen('rank')} />
 }
 
 export default App
