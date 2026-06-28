@@ -257,49 +257,169 @@ def fuse_scores(
 # ---------------------------------------------------------------------------
 # 6. Evidence bullets (deterministic, for reasoning column)
 # ---------------------------------------------------------------------------
+# Honeypot detection
+# ---------------------------------------------------------------------------
+
+# Specific JD skill keywords for reasoning extraction
+_JD_SKILL_DISPLAY: list[tuple[str, str]] = [
+    ("faiss", "FAISS"), ("pinecone", "Pinecone"), ("weaviate", "Weaviate"),
+    ("qdrant", "Qdrant"), ("milvus", "Milvus"), ("elasticsearch", "Elasticsearch"),
+    ("opensearch", "OpenSearch"), ("sentence-transformers", "sentence-transformers"),
+    ("bge", "BGE"), ("e5 embed", "E5"), ("pytorch", "PyTorch"),
+    ("tensorflow", "TensorFlow"), ("rag", "RAG"), ("bert", "BERT"),
+    ("hugging face", "HuggingFace"), ("transformers", "transformers"),
+    ("lora", "LoRA"), ("peft", "PEFT"), ("qlora", "QLoRA"),
+    ("ndcg", "NDCG"), ("mrr", "MRR"), ("xgboost", "XGBoost"),
+    ("lightgbm", "LightGBM"), ("bm25", "BM25"), ("ann", "ANN indexing"),
+    ("recommendation", "recommendation systems"), ("ranking", "ranking"),
+    ("information retrieval", "IR"), ("dense retrieval", "dense retrieval"),
+    ("hybrid search", "hybrid search"), ("vector search", "vector search"),
+    ("embeddings", "embeddings"), ("python", "Python"), ("numpy", "NumPy"),
+    ("nlp", "NLP"), ("text classification", "text classification"),
+    ("named entity", "NER"),
+]
+
+
+def detect_honeypot(candidate: dict) -> float:
+    """
+    Return a penalty multiplier in [0, 1]. Values < 1 signal honeypot risk.
+    Honeypots have subtly impossible profiles, e.g. Expert in 8 skills with
+    0 months experience in each, or total career months >> claimed years.
+    """
+    skills_raw = candidate.get("skills_raw", [])
+    years_exp = float(candidate.get("years_experience", 0))
+    career = candidate.get("career_history", [])
+
+    # Expert skills with 0 duration months — impossible to be expert at in 0 months
+    expert_zero = sum(
+        1 for s in skills_raw
+        if str(s.get("proficiency", "")).lower() == "expert"
+        and int(s.get("duration_months", -1)) == 0
+    )
+    if expert_zero >= 5:
+        return 0.05   # almost certainly honeypot
+    if expert_zero >= 3:
+        return 0.30
+    if expert_zero >= 1:
+        return 0.80
+
+    # Total career duration >> claimed years (suspicious inflation)
+    total_career_months = sum(int(r.get("duration_months", 0) or 0) for r in career)
+    if total_career_months > (years_exp + 5) * 12 and total_career_months > 0:
+        return 0.25   # claims 5+ extra years not in career history
+
+    return 1.0
+
 
 def build_reasoning(candidate: dict, scores: dict, jd: dict = JD) -> str:
-    """Build a concise reasoning string for the CSV reasoning column."""
-    parts = []
-
-    name = candidate.get("current_title", "Candidate")
+    """
+    Build a specific, non-templated 1-2 sentence reasoning string for the
+    CSV reasoning column.  Every fact mentioned must exist in the profile.
+    """
+    title = candidate.get("current_title", "Candidate")
     yoe = candidate.get("years_experience", 0)
-    parts.append(f"{name} with {yoe:.1f} yrs exp")
+    skill_names_set = set(s.lower() for s in candidate.get("skill_names", []))
+    career = candidate.get("career_history", [])
+    loc = candidate.get("location", "")
+    country = candidate.get("country", "")
+    open_wk = candidate.get("open_to_work", False)
+    notice = candidate.get("notice_period_days", 90)
+    rr = candidate.get("recruiter_response_rate", 0.0)
+    days_inactive = candidate.get("days_since_active", 999)
+    final_score = scores.get("final_score", 0)
 
-    # Skill coverage
-    skill_names = candidate.get("skill_names", [])
-    must_have_hits = []
-    for cluster_name, keywords in jd["must_have_skill_clusters"].items():
-        if any(kw.lower() in " ".join(skill_names) for kw in keywords):
-            must_have_hits.append(cluster_name.replace("_", "/"))
-    if must_have_hits:
-        parts.append(f"covers {len(must_have_hits)}/5 must-have clusters ({', '.join(must_have_hits[:3])})")
+    # ── Specific JD-matching skills ────────────────────────────────────────
+    matched_skills = [
+        display for key, display in _JD_SKILL_DISPLAY
+        if key in skill_names_set
+    ][:4]
+
+    # ── Cluster coverage ───────────────────────────────────────────────────
+    clusters_hit = [
+        name for name, kws in jd["must_have_skill_clusters"].items()
+        if any(kw.lower() in skill_names_set for kw in kws)
+    ]
+    n_clusters = len(clusters_hit)
+
+    # ── Company type ───────────────────────────────────────────────────────
+    companies_str = " ".join(r.get("company", "").lower() for r in career)
+    consulting_count = sum(1 for f in CONSULTING_FIRMS if f in companies_str)
+    all_consulting = consulting_count >= max(1, len(career) * 0.8)
+    product_bg = not all_consulting and career
+
+    # ── Career description — production signals ───────────────────────────
+    career_desc = " ".join(r.get("description", "") for r in career).lower()
+    prod_words = [w for w in ["production", "deployed", "shipped", "at scale", "live", "serving"]
+                  if w in career_desc]
+    has_prod_signal = len(prod_words) >= 1
+
+    # ── Location ──────────────────────────────────────────────────────────
+    loc_str = loc.split(",")[0].strip() if loc else country
+    in_india = country.lower() == "india"
+    tier1 = any(t in loc.lower() for t in TIER1_LOCATIONS) if in_india else False
+
+    # ── Build sentence pieces ─────────────────────────────────────────────
+    s1_parts = []
+
+    # Lead: title + experience
+    exp_qualifier = (
+        "strong experience" if 5 <= yoe <= 9
+        else "early-career" if yoe < 4
+        else f"{yoe:.0f} yrs"
+    )
+    s1_parts.append(f"{title} ({yoe:.1f} yrs)")
+
+    # Skills: name actual matches from JD
+    if matched_skills:
+        s1_parts.append(f"hands-on with {', '.join(matched_skills)}")
+    elif n_clusters >= 3:
+        s1_parts.append(f"covers {n_clusters}/5 must-have JD skill clusters")
+    else:
+        s1_parts.append(f"partial skill overlap ({n_clusters}/5 clusters)")
+
+    # Career background
+    if all_consulting:
+        s1_parts.append("career exclusively at consulting firms — JD explicit disqualifier")
+    elif has_prod_signal and product_bg:
+        s1_parts.append("production deployment experience at product companies")
+    elif product_bg:
+        s1_parts.append("product-company background")
 
     # Location
-    country = candidate.get("country", "")
-    loc = candidate.get("location", "")
-    if country == "India":
-        city_match = any(t in loc.lower() for t in TIER1_LOCATIONS)
-        parts.append(f"India-based ({loc})" + (" – Tier-1 city" if city_match else ""))
-    elif country:
-        parts.append(f"Located in {country}")
+    if loc_str:
+        loc_note = f"{loc_str} (Tier-1)" if tier1 else loc_str
+        s1_parts.append(f"based in {loc_note}")
 
-    # Behavioral highlights
-    if candidate.get("open_to_work"):
-        parts.append("open to work")
-    notice = candidate.get("notice_period_days", 90)
-    if notice <= 30:
-        parts.append(f"notice {notice}d")
-    elif notice <= 60:
-        parts.append(f"notice {notice}d")
+    # ── Sentence 2: behavioral + concern ─────────────────────────────────
+    s2_parts = []
 
-    rr = candidate.get("recruiter_response_rate", 0)
-    parts.append(f"response rate {rr:.0%}")
+    if open_wk:
+        s2_parts.append("actively open to work")
+    elif days_inactive > 180:
+        s2_parts.append(f"inactive for {days_inactive} days — likely passive")
 
-    final = scores.get("final_score", 0)
-    parts.append(f"final score {final:.4f}")
+    if rr >= 0.80:
+        s2_parts.append(f"high recruiter response rate ({rr:.0%})")
+    elif rr <= 0.30:
+        s2_parts.append(f"low response rate ({rr:.0%}) — availability concern")
 
-    return "; ".join(parts)
+    if notice <= 15:
+        s2_parts.append(f"immediately available ({notice}d notice)")
+    elif notice <= 30:
+        s2_parts.append(f"short notice ({notice}d)")
+    elif notice >= 90:
+        s2_parts.append(f"long notice period ({notice}d) reduces urgency")
+
+    # Honest gap if low score
+    if final_score < 40 and n_clusters <= 2:
+        s2_parts.append(
+            "limited overlap with JD's core retrieval and ranking requirements"
+        )
+
+    sentence1 = "; ".join(s1_parts) + "."
+    sentence2 = ("; ".join(s2_parts) + ".") if s2_parts else ""
+
+    return (sentence1 + " " + sentence2).strip()
 
 
 # ---------------------------------------------------------------------------

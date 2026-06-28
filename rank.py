@@ -40,7 +40,7 @@ def main():
         default="./data/raw/candidates.jsonl",
         help="Path to candidates.jsonl",
     )
-    parser.add_argument("--out", default="./output/submission.csv", help="Output CSV path")
+    parser.add_argument("--out", default="./output/intellirank.csv", help="Output CSV path")
     parser.add_argument("--top-k", type=int, default=100)
     parser.add_argument(
         "--no-semantic",
@@ -110,19 +110,24 @@ def main():
                 behavioral=behavioral,
             )
 
+            # Honeypot detection: multiply final score by penalty factor
+            honeypot_mult = sc.detect_honeypot(cand)
+            final_adjusted = round(final * honeypot_mult, 4)
+
             scores = {
                 "semantic_score": semantic,
                 "skill_match_score": skill,
                 "career_fit_score": career,
                 "behavioral_score": behavioral,
-                "final_score": final,
+                "final_score": final_adjusted,
             }
 
             results.append({
                 "candidate_id": cid,
-                "final_score": final,
+                "final_score": final_adjusted,
                 "reasoning": sc.build_reasoning(cand, scores),
                 "_scores": scores,
+                "_honeypot_mult": honeypot_mult,
             })
 
             if (i + 1) % 20000 == 0:
@@ -142,14 +147,21 @@ def main():
     top_k = min(args.top_k, len(results))
     out_path = Path(args.out)
 
+    # Re-sort top-k by the *rounded* output score then candidate_id, so the
+    # validator's tie-break check (candidate_id ascending at equal scores) passes.
+    top_rows = results[:top_k]
+    top_rows.sort(key=lambda x: (-round(x["final_score"] / 100.0, 4), x["candidate_id"]))
+
     with open(out_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["candidate_id", "rank", "score", "reasoning"])
-        for rank_num, r in enumerate(results[:top_k], start=1):
+        for rank_num, r in enumerate(top_rows, start=1):
+            # Spec: scores in 0-1 range (non-increasing), ties broken by candidate_id asc
+            score_01 = round(r["final_score"] / 100.0, 4)
             writer.writerow([
                 r["candidate_id"],
                 rank_num,
-                f"{r['final_score']:.4f}",
+                f"{score_01:.4f}",
                 r["reasoning"],
             ])
 
@@ -159,19 +171,23 @@ def main():
     # -----------------------------------------------------------------------
     # 5. Console sanity check (top 10)
     # -----------------------------------------------------------------------
+    honeypot_penalized = sum(1 for r in results[:top_k] if r["_honeypot_mult"] < 1.0)
+    print(f"\nHoneypot-penalized in top-{top_k}: {honeypot_penalized}")
+
     print("\n--- Top 10 candidates ---")
     for rank_num, r in enumerate(results[:10], start=1):
         s = r["_scores"]
         sem_str = f"{s['semantic_score']:.1f}" if s["semantic_score"] is not None else "N/A"
+        hp_str = f" [HP x{r['_honeypot_mult']:.2f}]" if r["_honeypot_mult"] < 1.0 else ""
         print(
             f"  #{rank_num:2d} {r['candidate_id']} "
-            f"final={r['final_score']:.4f} "
+            f"score={r['final_score']/100:.4f} "
             f"skill={s['skill_match_score']:.1f} "
             f"career={s['career_fit_score']:.1f} "
             f"behav={s['behavioral_score']:.1f} "
-            f"sem={sem_str}"
+            f"sem={sem_str}{hp_str}"
         )
-        print(f"       {r['reasoning'][:100]}")
+        print(f"       {r['reasoning'][:120]}")
 
 
 if __name__ == "__main__":
