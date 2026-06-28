@@ -2,17 +2,17 @@ team_name: "intellirank"
 
 primary_contact:
   name: "Pranav"
-  email: "pranav@example.com"
+  email: "pranayuworkspace@gmail.com"
   phone: "+91-XXXXXXXXXX"
 
 team_members:
   - name: "Pranav"
-    email: "pranav@example.com"
+    email: "pranayuworkspace@gmail.com"
     role: "Solo participant"
 
-github_repo: "https://github.com/YOUR_USERNAME/intellirank"
+github_repo: "https://github.com/pranayukey200/Redrob-Data-AI-_challenge"
 
-sandbox_link: "https://huggingface.co/spaces/YOUR_USERNAME/intellirank"
+sandbox_link: "https://intellisense-2253d.web.app/"
 
 reproduce_command: "python rank.py --candidates ./candidates.jsonl --out ./submission.csv"
 

@@ -59,3 +59,10 @@ logs/
 # Distribution
 *.tar.gz
 *.zip
+
+# Large dataset directories (465MB+, not for GitHub)
+[PUB] India_runs_data_and_ai_challenge/
+__MACOSX/
+
+# Claude Code internal files
+.claude/
