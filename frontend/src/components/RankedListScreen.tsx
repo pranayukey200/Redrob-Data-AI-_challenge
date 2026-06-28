@@ -196,6 +196,19 @@ export default function RankedListScreen({ ranking, onBack }: Props) {
   const [tab, setTab] = useState<'breakdown' | 'signals' | 'skills'>('breakdown')
   const [view, setView] = useState<'list' | 'insights'>('list')
 
+  const downloadCSV = () => {
+    const rows = [['candidate_id', 'rank', 'score', 'reasoning']]
+    ranking.results.slice(0, 100).forEach((c, i) => {
+      rows.push([c.candidate_id, String(i + 1), c.final_score.toFixed(4), `"${c.reasoning.replace(/"/g, '""')}"`])
+    })
+    const csv = rows.map(r => r.join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = 'ranked_candidates.csv'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const radarData = selected ? [
     { subject: 'Skill', value: selected.skill_match_score },
     { subject: 'Career', value: selected.career_fit_score },
@@ -204,7 +217,7 @@ export default function RankedListScreen({ ranking, onBack }: Props) {
   ] : []
 
   return (
-    <div className="min-h-screen bg-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
       {/* Background glow */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute w-96 h-96 rounded-full"
@@ -240,14 +253,10 @@ export default function RankedListScreen({ ranking, onBack }: Props) {
               }`}>{v}</button>
           ))}
         </div>
-        <a href="http://localhost:8000/api/export/csv"
+        <button onClick={downloadCSV}
           className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
           <Download size={11} />CSV
-        </a>
-        <a href="http://localhost:8000/api/export/xlsx"
-          className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-xl border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
-          <Download size={11} />XLSX
-        </a>
+        </button>
       </div>
 
       {view === 'insights' ? (
