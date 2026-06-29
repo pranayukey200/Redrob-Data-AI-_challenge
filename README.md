@@ -4,7 +4,7 @@ Redrob "Data & AI Challenge: Intelligent Candidate Discovery" hackathon submissi
 
 🚀 **Live Demo:** [https://intellisense-2253d.web.app/](https://intellisense-2253d.web.app/)
 
-📊 **Presentation Deck:** [IntelliRank_Deck_Enhanced.pptx](output/IntelliRank_Deck_Enhanced.pptx)
+📊 **Presentation Deck:** [IntelliRank_Deck_Final.pptx](output/IntelliRank_Deck_Final.pptx) ← **Use this for submission**
 
 ## What it does
 
