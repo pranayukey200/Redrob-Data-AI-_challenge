@@ -1,0 +1,33 @@
+TOP 10 CANDIDATES SUMMARY
+============================================================
+
+Rank 1: CAND_0077337 (Score: 72.6045)
+  Staff Machine Learning Engineer with 7.0 yrs exp; covers 5/5 must-have clusters (embeddings/retrieval, vector/db, python); India-based (Kochi, Kerala); open to work; notice 60d; response rate 95%; final score 72.6045
+
+Rank 2: CAND_0081846 (Score: 71.1860)
+  Lead AI Engineer with 6.7 yrs exp; covers 5/5 must-have clusters (embeddings/retrieval, vector/db, python); India-based (Jaipur, Rajasthan); open to work; notice 30d; response rate 73%; final score 71.1860
+
+Rank 3: CAND_0018499 (Score: 71.0490)
+  Senior Machine Learning Engineer with 7.2 yrs exp; covers 5/5 must-have clusters (embeddings/retrieval, vector/db, python); India-based (Noida, Uttar Pradesh) – Tier-1 city; open to work; notice 15d; response rate 61%; final score 71.0490
+
+Rank 4: CAND_0041610 (Score: 67.9530)
+  Recommendation Systems Engineer with 6.7 yrs exp; covers 5/5 must-have clusters (embeddings/retrieval, vector/db, python); India-based (Indore, Madhya Pradesh); open to work; notice 30d; response rate 52%; final score 67.9530
+
+Rank 5: CAND_0005649 (Score: 65.1960)
+  Senior Data Scientist with 7.4 yrs exp; covers 5/5 must-have clusters (embeddings/retrieval, vector/db, python); India-based (Delhi, Delhi) – Tier-1 city; open to work; response rate 57%; final score 65.1960
+
+Rank 6: CAND_0033861 (Score: 64.6980)
+  Senior NLP Engineer with 8.0 yrs exp; covers 5/5 must-have clusters (embeddings/retrieval, vector/db, python); India-based (Vizag, Andhra Pradesh); notice 30d; response rate 16%; final score 64.6980
+
+Rank 7: CAND_0011687 (Score: 64.3555)
+  Senior NLP Engineer with 7.8 yrs exp; covers 3/5 must-have clusters (embeddings/retrieval, vector/db, python); India-based (Indore, Madhya Pradesh); open to work; notice 15d; response rate 89%; final score 64.3555
+
+Rank 8: CAND_0007009 (Score: 64.3290)
+  Recommendation Systems Engineer with 7.9 yrs exp; covers 5/5 must-have clusters (embeddings/retrieval, vector/db, python); India-based (Noida, Uttar Pradesh) – Tier-1 city; open to work; notice 30d; response rate 62%; final score 64.3290
+
+Rank 9: CAND_0005260 (Score: 64.0270)
+  Senior NLP Engineer with 5.2 yrs exp; covers 5/5 must-have clusters (embeddings/retrieval, vector/db, python); India-based (Chennai, Tamil Nadu); notice 60d; response rate 86%; final score 64.0270
+
+Rank 10: CAND_0028793 (Score: 63.8835)
+  Search Engineer with 7.2 yrs exp; covers 5/5 must-have clusters (embeddings/retrieval, vector/db, python); India-based (Trivandrum, Kerala); open to work; response rate 57%; final score 63.8835
+

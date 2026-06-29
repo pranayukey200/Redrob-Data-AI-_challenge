@@ -2,6 +2,10 @@
 
 Redrob "Data & AI Challenge: Intelligent Candidate Discovery" hackathon submission.
 
+🚀 **Live Demo:** [https://intellisense-2253d.web.app/](https://intellisense-2253d.web.app/)
+
+📊 **Presentation Deck:** [IntelliRank_Deck_Enhanced.pptx](output/IntelliRank_Deck_Enhanced.pptx)
+
 ## What it does
 
 Ranks 100,000 candidates against a Senior AI Engineer job description using four signals:
@@ -52,6 +56,10 @@ python validate_submission.py ./output/submission.csv
 ```
 
 ### 6. Run the web app (optional)
+
+**Live demo available at:** [https://intellisense-2253d.web.app/](https://intellisense-2253d.web.app/)
+
+To run locally:
 
 ```bash
 # Terminal 1 — Backend
