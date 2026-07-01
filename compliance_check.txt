@@ -1,0 +1,55 @@
+REDROB HACKATHON COMPLIANCE CHECKLIST
+=====================================
+
+REQUIREMENT CHECKLIST FROM README:
+
+1. Read the docs (~30 minutes)
+   ✓ job_description.md - JD analyzed and encoded in pipeline/jd_config.py
+   ✓ submission_spec.md - All rules implemented (100 rows, reasoning, compute constraints)
+   ✓ redrob_signals_doc.md - Behavioral signals integrated in behavioral_score()
+   ✓ candidate_schema.json - Schema mapped in data/adapter.py
+   ✓ sample_candidates.json - Inspected during development
+
+2. Unpack the candidate pool
+   ✓ candidates.jsonl present in data/raw/
+
+3. Build your ranker
+   ✓ Multi-signal ranker built (skill 35%, career 30%, behavioral 15%, semantic 20%)
+   ✓ Top 100 CSV with reasoning generated
+   ✓ Compute constraints met: 69s runtime, CPU-only, no network, <16GB RAM
+
+4. Validate before submitting
+   ✓ validate_submission.py passes: "Submission is valid."
+
+5. Submit requirements
+   ✓ CSV file: output/submission.csv (needs rename to team_xxx.csv)
+   ✓ submission_metadata.yaml: Complete with all fields
+   ✓ GitHub repo: https://github.com/pranayukey200/Redrob-Data-AI-_challenge
+   ✓ Sandbox link: https://intellisense-2253d.web.app/ (Firebase hosted)
+   ✓ AI tools declared: Claude usage documented
+
+KEY CONSTRAINTS VERIFICATION:
+   ✓ Runtime: 69 seconds (< 5 min) ✓
+   ✓ Memory: ~4GB peak (< 16GB) ✓
+   ✓ Compute: CPU only (no GPU) ✓
+   ✓ Network: Offline during ranking ✓
+   ✓ Format: 100 rows + header ✓
+   ✓ Scores: Non-increasing (72.60 → 56.80) ✓
+   ✓ Reasoning: Detailed per candidate ✓
+
+TRAP DETECTION:
+   ⚠ Honeypot detection: Implicit via signal degradation
+     (0-month expert skills score low, impossible dates hurt career fit)
+     NOT explicitly implemented - metadata shows honeypot_check_done: false
+
+SUBMISSION MATERIALS:
+   ✓ Enhanced PPT with visuals, charts, architecture
+   ✓ GitHub repo with deployed link in README
+   ✓ Live sandbox deployed and accessible
+   ✓ All code reproducible with requirements.txt
+
+MISSING/TODO:
+   ⚠ Team ID - Need to find from registration email and rename CSV
+   ⚠ Explicit honeypot detection (currently relies on natural signal degradation)
+
+OVERALL STATUS: 95% COMPLETE
